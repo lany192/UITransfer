@@ -44,27 +44,18 @@ public class TransferProcessor extends AbstractProcessor {
             //判断当前Element是否是类,不用 annotatedElement instanceof TypeElement的原因是interface也是TypeElement.
             if (annotatedElement.getKind() == ElementKind.CLASS) {
                 TypeElement annotatedClass = (TypeElement) annotatedElement;
-                generateStaterCode(annotatedClass);
+                String packageName = processingEnv.getElementUtils().getPackageOf(annotatedClass).getQualifiedName().toString();
+                CodeGenerator codeGenerator = new CodeGenerator(packageName, annotatedClass);
+                try {
+                    codeGenerator.generateJavaFile(processingEnv.getFiler());
+                } catch (IOException e) {
+                    mMessager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+                }
             }
         }
         return true;
     }
 
-    private void generateStaterCode(TypeElement annotatedClass) {
-        //获取包名
-        String packageName = processingEnv.getElementUtils().getPackageOf(annotatedClass).getQualifiedName().toString();
-        CodeGenerator codeGenerator = new CodeGenerator(packageName, annotatedClass);
-
-        try {
-            codeGenerator.generateJavaFile(processingEnv.getFiler());
-        } catch (IOException e) {
-            mMessager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-        }
-    }
-
-    /**
-     * @return 返回支持的Annotation类型
-     */
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> supportedAnnotationTypes = new HashSet<>();
