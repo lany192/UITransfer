@@ -29,12 +29,12 @@ import javax.lang.model.util.ElementFilter;
 
 @AutoService(Processor.class)
 public class TransferProcessor extends AbstractProcessor {
-    private Logger logger;
+    private Logger log;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        logger = new Logger(processingEnv.getMessager());
+        log = new Logger(processingEnv.getMessager());
     }
 
     @Override
@@ -50,14 +50,14 @@ public class TransferProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 e.printStackTrace();
                 //如果有执行到Diagnostic.Kind.ERROR就会出现错误提示
-                logger.e("错误啊" + e.getMessage());
+                log.e("错误啊" + e.getMessage());
             }
         }
         Set<? extends Element> fieldElementSet = roundEnv.getElementsAnnotatedWith(TransferField.class);
         if (fieldElementSet != null && fieldElementSet.size() > 0) {
             for (Element item : fieldElementSet) {
                 if (item.getKind() == ElementKind.FIELD) {
-                    logger.i("名称==" + item.getSimpleName());
+                    log.i("名称==" + item.getSimpleName());
                 }
             }
         }
@@ -66,6 +66,7 @@ public class TransferProcessor extends AbstractProcessor {
 
     private TypeSpec generateCode(Set<? extends Element> elementSet, String packageName) {
         TypeSpec.Builder builder = TypeSpec.classBuilder("UITransfer")
+                .addJavadoc("界面跳转调用此类")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
         for (Element item : elementSet) {
             //判断当前Element是否是类,不用 item instanceof TypeElement的原因是interface也是TypeElement.
@@ -115,7 +116,7 @@ public class TransferProcessor extends AbstractProcessor {
     private List<Element> filterFields(TypeElement element) {
         List<Element> elements = new ArrayList<>();
         for (Element builderField : ElementFilter.fieldsIn(element.getEnclosedElements())) {
-//            boolean isIgnored = builderField.getAnnotation(RouterData.class) != null
+//            boolean isIgnored = builderField.getAnnotation(TransferField.class) != null
 //                    || builderField.getModifiers().contains(Modifier.STATIC)
 //                    || builderField.getModifiers().contains(Modifier.FINAL)
 //                    || builderField.getModifiers().contains(Modifier.PRIVATE);
