@@ -56,9 +56,9 @@ public class TransferProcessor extends AbstractProcessor {
         }
         Set<? extends Element> fieldElementSet = roundEnv.getElementsAnnotatedWith(TransferField.class);
         if (fieldElementSet != null && fieldElementSet.size() > 0) {
-            for (Element item : fieldElementSet) {
-                if (item.getKind() == ElementKind.FIELD) {
-                    log.i("名称==" + item.getSimpleName());
+            for (Element fieldElement : fieldElementSet) {
+                if (fieldElement.getKind() == ElementKind.FIELD) {
+                    log.i("名称==" + fieldElement.getSimpleName());
                 }
             }
         }
@@ -80,19 +80,13 @@ public class TransferProcessor extends AbstractProcessor {
     }
 
     private MethodSpec getMethodSpecFromTypeElement(TypeElement typeElement, String packageName) {
-        String methodName = typeElement.getSimpleName().toString();
-        if (methodName.contains("activity")) {
-            methodName = methodName.replace("activity", "");
-        }
-        if (methodName.contains("Activity")) {
-            methodName = methodName.replace("Activity", "");
-        }
-        methodName = "start" + methodName;
-        ClassName annotatedClassName = ClassName.get(packageName, typeElement.getSimpleName().toString());
+        final String simpleName = typeElement.getSimpleName().toString();
+        String methodName = "start" + simpleName;
+
+        ClassName annotatedClassName = ClassName.get(packageName, simpleName);
         ClassName intentClassName = ClassName.get("android.content", "Intent");
         ClassName bundleClassName = ClassName.get("android.os", "Bundle");
         ClassName contextClassName = ClassName.get("android.content", "Context");
-
 
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName);
         methodBuilder.addJavadoc("goto $N activity", methodName);
@@ -102,11 +96,11 @@ public class TransferProcessor extends AbstractProcessor {
         methodBuilder.addStatement("$T intent= new $T(context,$T.class)", intentClassName, intentClassName, annotatedClassName);
         methodBuilder.addStatement("$T bundle = new $T()", bundleClassName, bundleClassName);
         List<Element> elements = filterFields(typeElement);
-        for (Element field : elements) {
-            TransferField annotation = field.getAnnotation(TransferField.class);
+        for (Element fieldElement : elements) {
+            TransferField annotation = fieldElement.getAnnotation(TransferField.class);
             String key = annotation.value();
-            TypeName fieldClass = ClassName.get(field.asType());
-            String fieldName = field.getSimpleName().toString();
+            TypeName fieldClass = ClassName.get(fieldElement.asType());
+            String fieldName = fieldElement.getSimpleName().toString();
             if (TextUtils.isEmpty(key)) {//如果key为空，用字段名称
                 key = fieldName;
             }
@@ -117,6 +111,21 @@ public class TransferProcessor extends AbstractProcessor {
         methodBuilder.addStatement("context.startActivity(intent)");
 
         return methodBuilder.build();
+    }
+
+    /**
+     * 是否为原子类型
+     *
+     * @param typeName
+     * @return
+     */
+    private boolean isAtomType(TypeName typeName) {
+        if (TypeName.BOOLEAN == typeName || TypeName.CHAR == typeName
+                || TypeName.DOUBLE == typeName || TypeName.FLOAT == typeName
+                || TypeName.INT == typeName || TypeName.LONG == typeName) {
+            return true;
+        }
+        return false;
     }
 
     private List<Element> filterFields(TypeElement element) {
