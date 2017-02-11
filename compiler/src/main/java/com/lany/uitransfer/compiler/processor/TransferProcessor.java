@@ -1,11 +1,9 @@
-package com.lany.uitransfer.compiler;
+package com.lany.uitransfer.compiler.processor;
 
 import com.google.auto.service.AutoService;
 import com.lany.uitransfer.annotaion.TransferField;
 import com.lany.uitransfer.annotaion.TransferTarget;
-import com.lany.uitransfer.compiler.rules.AbstractClassRejectRule;
-import com.lany.uitransfer.compiler.rules.ConstructorRejectRule;
-import com.lany.uitransfer.compiler.rules.Rule;
+import com.lany.uitransfer.compiler.utils.Logger;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -19,7 +17,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
@@ -29,20 +26,15 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
-import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
 public class TransferProcessor extends AbstractProcessor {
-    private List<Rule> mRules;
-    private Messager mMessager;
+    private Logger logger;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        mRules = new ArrayList<>();
-        mRules.add(new AbstractClassRejectRule());
-        mRules.add(new ConstructorRejectRule());
-        mMessager = processingEnv.getMessager();
+        logger = new Logger(processingEnv.getMessager());
     }
 
     @Override
@@ -58,14 +50,14 @@ public class TransferProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 e.printStackTrace();
                 //如果有执行到Diagnostic.Kind.ERROR就会出现错误提示
-                mMessager.printMessage(Diagnostic.Kind.ERROR, "错误啊" + e.getMessage());
+                logger.e("错误啊" + e.getMessage());
             }
         }
         Set<? extends Element> fieldElementSet = roundEnv.getElementsAnnotatedWith(TransferField.class);
         if (fieldElementSet != null && fieldElementSet.size() > 0) {
             for (Element item : fieldElementSet) {
                 if (item.getKind() == ElementKind.FIELD) {
-                    mMessager.printMessage(Diagnostic.Kind.NOTE, "名称==" + item.getSimpleName());
+                    logger.i("名称==" + item.getSimpleName());
                 }
             }
         }
