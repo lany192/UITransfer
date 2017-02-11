@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 UITransfer.startOne(MainActivity.this, "Hello UITransfer");
+                UITransfer.startTwo(MainActivity.this, "this is two from main");
             }
         });
     }

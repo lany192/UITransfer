@@ -6,6 +6,11 @@ import com.lany.uitransfer.annotaion.TransferTarget;
 import com.lany.uitransfer.compiler.rules.AbstractClassRejectRule;
 import com.lany.uitransfer.compiler.rules.ConstructorRejectRule;
 import com.lany.uitransfer.compiler.rules.Rule;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,7 +26,9 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
@@ -40,20 +47,91 @@ public class TransferProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(TransferTarget.class)) {
-            //判断当前Element是否是类,不用 annotatedElement instanceof TypeElement的原因是interface也是TypeElement.
-            if (annotatedElement.getKind() == ElementKind.CLASS) {
-                TypeElement annotatedClass = (TypeElement) annotatedElement;
-                String packageName = processingEnv.getElementUtils().getPackageOf(annotatedClass).getQualifiedName().toString();
-                CodeGenerator codeGenerator = new CodeGenerator(packageName, annotatedClass);
-                try {
-                    codeGenerator.generateJavaFile(processingEnv.getFiler());
-                } catch (IOException e) {
-                    mMessager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+        Set<? extends Element> elementSet = roundEnv.getElementsAnnotatedWith(TransferTarget.class);
+        if (elementSet != null && elementSet.size() > 0) {
+            String packageName = "com.lany.uitransfer";
+            JavaFile javaFile = JavaFile.builder(packageName, generateCode(elementSet, packageName))
+                    .addFileComment("Generated code from UITransfer. Do not modify!")
+                    .build();
+            try {
+                javaFile.writeTo(processingEnv.getFiler());
+            } catch (IOException e) {
+                e.printStackTrace();
+                //如果有执行到Diagnostic.Kind.ERROR就会出现错误提示
+                mMessager.printMessage(Diagnostic.Kind.ERROR, "错误啊" + e.getMessage());
+            }
+        }
+        Set<? extends Element> fieldElementSet = roundEnv.getElementsAnnotatedWith(TransferField.class);
+        if (fieldElementSet != null && fieldElementSet.size() > 0) {
+            for (Element item : fieldElementSet) {
+                if (item.getKind() == ElementKind.FIELD) {
+                    mMessager.printMessage(Diagnostic.Kind.NOTE, "名称==" + item.getSimpleName());
                 }
             }
         }
         return true;
+    }
+
+    private TypeSpec generateCode(Set<? extends Element> elementSet, String packageName) {
+        TypeSpec.Builder builder = TypeSpec.classBuilder("UITransfer")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        for (Element item : elementSet) {
+            //判断当前Element是否是类,不用 item instanceof TypeElement的原因是interface也是TypeElement.
+            if (item.getKind() == ElementKind.CLASS) {
+                TypeElement typeElement = (TypeElement) item;
+                builder.addMethod(getMethodSpecFromTypeElement(typeElement, packageName));
+            }
+        }
+        return builder.build();
+    }
+
+    private MethodSpec getMethodSpecFromTypeElement(TypeElement typeElement, String packageName) {
+        String methodName = typeElement.getSimpleName().toString();
+        if (methodName.contains("activity")) {
+            methodName = methodName.replace("activity", "");
+        }
+        if (methodName.contains("Activity")) {
+            methodName = methodName.replace("Activity", "");
+        }
+        methodName = "start" + methodName;
+        ClassName annotatedClassName = ClassName.get(packageName, typeElement.getSimpleName().toString());
+        ClassName intentClassName = ClassName.get("android.content", "Intent");
+        ClassName bundleClassName = ClassName.get("android.os", "Bundle");
+
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName);
+        methodBuilder.addJavadoc("goto $N activity", methodName);
+        methodBuilder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        methodBuilder.returns(void.class);
+        methodBuilder.addParameter(ClassName.get("android.content", "Context"), "context");
+        methodBuilder.addStatement("$T intent= new $T(context,$T.class)", intentClassName, intentClassName, annotatedClassName);
+        methodBuilder.addStatement("$T bundle = new $T()", bundleClassName, bundleClassName);
+        List<Element> elements = filterFields(typeElement);
+        for (Element field : elements) {
+            TypeName fieldClass = ClassName.get(field.asType());
+            String fieldName = field.getSimpleName().toString();
+            String key = fieldName;
+            methodBuilder.addParameter(fieldClass, fieldName);
+            methodBuilder.addStatement("bundle.putString($S, $N)", key, fieldName);
+        }
+        methodBuilder.addStatement("intent.putExtras(bundle)");
+        methodBuilder.addStatement("context.startActivity(intent)");
+
+        return methodBuilder.build();
+    }
+
+    private List<Element> filterFields(TypeElement element) {
+        List<Element> elements = new ArrayList<>();
+        for (Element builderField : ElementFilter.fieldsIn(element.getEnclosedElements())) {
+//            boolean isIgnored = builderField.getAnnotation(RouterData.class) != null
+//                    || builderField.getModifiers().contains(Modifier.STATIC)
+//                    || builderField.getModifiers().contains(Modifier.FINAL)
+//                    || builderField.getModifiers().contains(Modifier.PRIVATE);
+            if (builderField.getAnnotation(TransferField.class) != null) {
+                elements.add(builderField);
+            }
+        }
+        return elements;
     }
 
     @Override
