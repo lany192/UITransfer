@@ -91,13 +91,14 @@ public class TransferProcessor extends AbstractProcessor {
         ClassName annotatedClassName = ClassName.get(packageName, typeElement.getSimpleName().toString());
         ClassName intentClassName = ClassName.get("android.content", "Intent");
         ClassName bundleClassName = ClassName.get("android.os", "Bundle");
+        ClassName contextClassName = ClassName.get("android.content", "Context");
 
 
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName);
         methodBuilder.addJavadoc("goto $N activity", methodName);
         methodBuilder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
         methodBuilder.returns(void.class);
-        methodBuilder.addParameter(ClassName.get("android.content", "Context"), "context");
+        methodBuilder.addParameter(contextClassName, "context");
         methodBuilder.addStatement("$T intent= new $T(context,$T.class)", intentClassName, intentClassName, annotatedClassName);
         methodBuilder.addStatement("$T bundle = new $T()", bundleClassName, bundleClassName);
         List<Element> elements = filterFields(typeElement);
