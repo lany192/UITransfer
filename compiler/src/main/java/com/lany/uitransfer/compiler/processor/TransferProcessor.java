@@ -99,12 +99,15 @@ public class TransferProcessor extends AbstractProcessor {
         for (Element fieldElement : elements) {
             TransferField annotation = fieldElement.getAnnotation(TransferField.class);
             String key = annotation.value();
-            TypeName fieldClass = ClassName.get(fieldElement.asType());
+            TypeName fieldTypeName = ClassName.get(fieldElement.asType());
             String fieldName = fieldElement.getSimpleName().toString();
             if (TextUtils.isEmpty(key)) {//如果key为空，用字段名称
                 key = fieldName;
             }
-            methodBuilder.addParameter(fieldClass, fieldName);
+            methodBuilder.addParameter(fieldTypeName, fieldName);
+            if (isAtomType(fieldTypeName)) {
+                //TODO
+            }
             methodBuilder.addStatement("bundle.putString($S, $N)", key, fieldName);
         }
         methodBuilder.addStatement("intent.putExtras(bundle)");
