@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 import com.lany.uitransfer.annotaion.TransferField;
 import com.lany.uitransfer.annotaion.TransferTarget;
 import com.lany.uitransfer.compiler.utils.Logger;
+import com.lany.uitransfer.compiler.utils.TextUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -101,9 +102,13 @@ public class TransferProcessor extends AbstractProcessor {
         methodBuilder.addStatement("$T bundle = new $T()", bundleClassName, bundleClassName);
         List<Element> elements = filterFields(typeElement);
         for (Element field : elements) {
+            TransferField annotation = field.getAnnotation(TransferField.class);
+            String key = annotation.value();
             TypeName fieldClass = ClassName.get(field.asType());
             String fieldName = field.getSimpleName().toString();
-            String key = fieldName;
+            if (TextUtils.isEmpty(key)) {//如果key为空，用字段名称
+                key = fieldName;
+            }
             methodBuilder.addParameter(fieldClass, fieldName);
             methodBuilder.addStatement("bundle.putString($S, $N)", key, fieldName);
         }
