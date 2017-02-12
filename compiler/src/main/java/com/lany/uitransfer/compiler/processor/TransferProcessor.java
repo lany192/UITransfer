@@ -3,6 +3,7 @@ package com.lany.uitransfer.compiler.processor;
 import com.google.auto.service.AutoService;
 import com.lany.uitransfer.annotaion.TransferField;
 import com.lany.uitransfer.annotaion.TransferTarget;
+import com.lany.uitransfer.compiler.utils.ClassNameUtils;
 import com.lany.uitransfer.compiler.utils.Logger;
 import com.lany.uitransfer.compiler.utils.TextUtils;
 import com.squareup.javapoet.ClassName;
@@ -84,17 +85,14 @@ public class TransferProcessor extends AbstractProcessor {
         String methodName = "start" + simpleName;
 
         ClassName annotatedClassName = ClassName.get(packageName, simpleName);
-        ClassName intentClassName = ClassName.get("android.content", "Intent");
-        ClassName bundleClassName = ClassName.get("android.os", "Bundle");
-        ClassName contextClassName = ClassName.get("android.content", "Context");
 
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName);
         methodBuilder.addJavadoc("goto $N activity", methodName);
         methodBuilder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
         methodBuilder.returns(void.class);
-        methodBuilder.addParameter(contextClassName, "context");
-        methodBuilder.addStatement("$T intent= new $T(context,$T.class)", intentClassName, intentClassName, annotatedClassName);
-        methodBuilder.addStatement("$T bundle = new $T()", bundleClassName, bundleClassName);
+        methodBuilder.addParameter(ClassNameUtils.CONTEXT, "context");
+        methodBuilder.addStatement("$T intent= new $T(context,$T.class)", ClassNameUtils.INTENT, ClassNameUtils.INTENT, annotatedClassName);
+        methodBuilder.addStatement("$T bundle = new $T()", ClassNameUtils.BUNDLE, ClassNameUtils.BUNDLE);
         List<Element> elements = filterFields(typeElement);
         for (Element fieldElement : elements) {
             TransferField annotation = fieldElement.getAnnotation(TransferField.class);
@@ -102,13 +100,24 @@ public class TransferProcessor extends AbstractProcessor {
             TypeName fieldTypeName = ClassName.get(fieldElement.asType());
             String fieldName = fieldElement.getSimpleName().toString();
             if (TextUtils.isEmpty(key)) {//如果key为空，用字段名称
-                key = fieldName;
+                key = fieldName.toUpperCase();
             }
             methodBuilder.addParameter(fieldTypeName, fieldName);
-            if (isAtomType(fieldTypeName)) {
-                //TODO
+            if (TypeName.CHAR == fieldTypeName) {
+                methodBuilder.addStatement("bundle.putChar($S, $N)", key, fieldName);
+            } else if (TypeName.BOOLEAN == fieldTypeName) {
+                methodBuilder.addStatement("bundle.putBoolean($S, $N)", key, fieldName);
+            } else if (TypeName.DOUBLE == fieldTypeName) {
+                methodBuilder.addStatement("bundle.putDouble($S, $N)", key, fieldName);
+            } else if (TypeName.FLOAT == fieldTypeName) {
+                methodBuilder.addStatement("bundle.putFloat($S, $N)", key, fieldName);
+            } else if (TypeName.INT == fieldTypeName) {
+                methodBuilder.addStatement("bundle.putInt($S, $N)", key, fieldName);
+            } else if (TypeName.LONG == fieldTypeName) {
+                methodBuilder.addStatement("bundle.putLong($S, $N)", key, fieldName);
+            } else {
+                methodBuilder.addStatement("bundle.putString($S, $N)", key, fieldName);
             }
-            methodBuilder.addStatement("bundle.putString($S, $N)", key, fieldName);
         }
         methodBuilder.addStatement("intent.putExtras(bundle)");
         methodBuilder.addStatement("context.startActivity(intent)");

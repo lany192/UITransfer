@@ -9,7 +9,7 @@ import com.lany.uitransfer.annotaion.TransferTarget;
 @TransferTarget
 public class TwoActivity extends AppCompatActivity {
     @TransferField
-    String demoData;
+    int demoData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

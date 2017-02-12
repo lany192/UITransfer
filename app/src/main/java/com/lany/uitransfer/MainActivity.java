@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -13,8 +14,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.my_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UITransfer.startOne(MainActivity.this, "Hello UITransfer");
-                UITransfer.startTwo(MainActivity.this, "this is two from main");
+                UITransfer.startOneActivity(MainActivity.this, "hello");
+                UITransfer.startTwoActivity(MainActivity.this, 0);
             }
         });
     }
