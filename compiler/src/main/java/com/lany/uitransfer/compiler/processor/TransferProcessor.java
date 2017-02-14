@@ -52,7 +52,7 @@ public class TransferProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 e.printStackTrace();
                 //如果有执行到Diagnostic.Kind.ERROR就会出现错误提示
-                log.e("错误啊" + e.getMessage());
+                log.e(e.getMessage());
             }
         }
         Set<? extends Element> fieldElementSet = roundEnv.getElementsAnnotatedWith(TransferField.class);
@@ -123,21 +123,6 @@ public class TransferProcessor extends AbstractProcessor {
         methodBuilder.addStatement("context.startActivity(intent)");
 
         return methodBuilder.build();
-    }
-
-    /**
-     * 是否为原子类型
-     *
-     * @param typeName
-     * @return
-     */
-    private boolean isAtomType(TypeName typeName) {
-        if (TypeName.BOOLEAN == typeName || TypeName.CHAR == typeName
-                || TypeName.DOUBLE == typeName || TypeName.FLOAT == typeName
-                || TypeName.INT == typeName || TypeName.LONG == typeName) {
-            return true;
-        }
-        return false;
     }
 
     private List<Element> filterFields(TypeElement element) {
