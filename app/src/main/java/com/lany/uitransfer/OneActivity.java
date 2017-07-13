@@ -10,7 +10,9 @@ import com.lany.uitransfer.annotaion.TransferTarget;
 @TransferTarget
 public class OneActivity extends AppCompatActivity {
     @TransferField("MY_DATA")
-    String mydata;
+    String name;
+    @TransferField
+    int age;
 
     private TextView showText;
 
@@ -19,8 +21,9 @@ public class OneActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_one);
         Bundle bundle = this.getIntent().getExtras();
-        mydata = bundle.getString("MY_DATA");
+        name = bundle.getString("MY_DATA");
+        age = bundle.getInt("AGE");
         showText = (TextView) findViewById(R.id.my_text_view);
-        showText.setText(mydata + "");
+        showText.setText(name + "  " + age);
     }
 }

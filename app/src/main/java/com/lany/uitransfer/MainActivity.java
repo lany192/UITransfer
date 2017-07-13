@@ -11,11 +11,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.my_button).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UITransfer.startOneActivity(MainActivity.this, "hello");
-                UITransfer.startTwoActivity(MainActivity.this, 0);
+                UIHelper.startOneActivity(MainActivity.this, "hello", 3);
+            }
+        });
+        findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UIHelper.startTwoActivity(MainActivity.this, 0);
             }
         });
     }

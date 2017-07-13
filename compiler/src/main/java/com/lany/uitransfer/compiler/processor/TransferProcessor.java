@@ -45,7 +45,7 @@ public class TransferProcessor extends AbstractProcessor {
         if (elementSet != null && elementSet.size() > 0) {
             String packageName = "com.lany.uitransfer";
             JavaFile javaFile = JavaFile.builder(packageName, generateCode(elementSet, packageName))
-                    .addFileComment("Generated code from UITransfer. Do not modify!")
+                    .addFileComment("Generated code from UIHelper. Do not modify!")
                     .build();
             try {
                 javaFile.writeTo(processingEnv.getFiler());
@@ -67,7 +67,7 @@ public class TransferProcessor extends AbstractProcessor {
     }
 
     private TypeSpec generateCode(Set<? extends Element> elementSet, String packageName) {
-        TypeSpec.Builder builder = TypeSpec.classBuilder("UITransfer")
+        TypeSpec.Builder builder = TypeSpec.classBuilder("UIHelper")
                 .addJavadoc("界面跳转调用此类")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
         for (Element item : elementSet) {
