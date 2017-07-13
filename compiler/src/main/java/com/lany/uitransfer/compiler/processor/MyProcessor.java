@@ -30,7 +30,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 
 @AutoService(Processor.class)
-public class TransferProcessor extends AbstractProcessor {
+public class MyProcessor extends AbstractProcessor {
     private Logger log;
 
     @Override
