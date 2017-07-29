@@ -5,8 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
-public @interface TransferTarget {
-
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.FIELD)
+public @interface IntentExtra {
+    String value() default "";
 }

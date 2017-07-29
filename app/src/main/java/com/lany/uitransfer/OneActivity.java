@@ -4,14 +4,13 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-import com.lany.uitransfer.annotaion.TransferField;
-import com.lany.uitransfer.annotaion.TransferTarget;
+import com.github.lany192.Transfer;
+import com.lany.uitransfer.annotaion.IntentExtra;
 
-@TransferTarget
 public class OneActivity extends AppCompatActivity {
-    @TransferField("MY_DATA")
+    @IntentExtra
     String name;
-    @TransferField
+    @IntentExtra
     int age;
 
     private TextView showText;
@@ -20,9 +19,7 @@ public class OneActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_one);
-        Bundle bundle = this.getIntent().getExtras();
-        name = bundle.getString("MY_DATA");
-        age = bundle.getInt("AGE");
+        Transfer.inject(this);
         showText = (TextView) findViewById(R.id.my_text_view);
         showText.setText(name + "  " + age);
     }

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+import com.github.lany192.Transfer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,19 +15,18 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UIHelper.startOneActivity(MainActivity.this, "hello", 3);
+                Transfer.from(MainActivity.this).toOneActivity().setAge(3).setName("哈哈哈").start();
             }
         });
         findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UIHelper.startTwoActivity(MainActivity.this, 0);
+                Transfer.from(MainActivity.this).toTwoActivity().setIsShow(true).setMyData(321).start();
             }
         });
         findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
             }
         });
     }
