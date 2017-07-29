@@ -1,12 +1,9 @@
 apply plugin: 'java'
 apply plugin: 'com.github.dcendents.android-maven'
-group='com.lany.uitransfer'
+group='com.github.lany192'
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.squareup:javapoet:1.9.0'
-    compile 'com.google.auto.service:auto-service:1.0-rc3'
-    compile project(':annotation')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 sourceCompatibility = "1.7"

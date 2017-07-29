@@ -2,7 +2,7 @@ package com.lany.uitransfer.compiler;
 
 
 import com.google.auto.service.AutoService;
-import com.lany.uitransfer.annotaion.IntentExtra;
+import com.lany.uitransfer.annotaion.RequestParam;
 import com.lany.uitransfer.annotaion.TransferInjector;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
@@ -47,7 +47,7 @@ public class TransferProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        for (Element element : roundEnvironment.getElementsAnnotatedWith(IntentExtra.class)) {
+        for (Element element : roundEnvironment.getElementsAnnotatedWith(RequestParam.class)) {
             if (!(element instanceof VariableElement)) {
                 return false;
             }
@@ -68,7 +68,7 @@ public class TransferProcessor extends AbstractProcessor {
         String fieldName = variableElement.getSimpleName().toString();
         String fieldType = variableElement.asType().toString();
         String className = variableElement.getEnclosingElement().getSimpleName().toString();
-        IntentExtra annotation = element.getAnnotation(IntentExtra.class);
+        RequestParam annotation = element.getAnnotation(RequestParam.class);
         String fieldValue = annotation.value().isEmpty() ? fieldName : annotation.value();
         String canonicalClassName = packageName + "." + className;
         TransferEntity TransferEntity;
@@ -395,7 +395,7 @@ public class TransferProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> set = new LinkedHashSet<>();
-        set.add(IntentExtra.class.getCanonicalName());
+        set.add(RequestParam.class.getCanonicalName());
         return set;
     }
 

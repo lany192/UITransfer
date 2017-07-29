@@ -5,12 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import com.github.lany192.Transfer;
-import com.lany.uitransfer.annotaion.IntentExtra;
+import com.lany.uitransfer.annotaion.RequestParam;
 
 public class TwoActivity extends AppCompatActivity {
-    @IntentExtra("myData")
+    @RequestParam("myData")
     int demoData;
-    @IntentExtra("isShow")
+    @RequestParam("isShow")
     boolean isShow;
 
     @Override
