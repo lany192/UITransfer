@@ -30,6 +30,9 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
-    annotationProcessor project(':compiler')
-    compile project(':annotation')
+
+    compile 'com.github.lany192.UITransfer:annotation:1.0.0'
+    annotationProcessor 'com.github.lany192.UITransfer:compiler:1.0.0'
+//    annotationProcessor project(':compiler')
+//    compile project(':annotation')
 }

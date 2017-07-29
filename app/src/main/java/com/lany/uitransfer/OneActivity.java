@@ -19,7 +19,9 @@ public class OneActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_one);
+
         Transfer.inject(this);
+
         showText = (TextView) findViewById(R.id.my_text_view);
         showText.setText(name + "  " + age);
     }
