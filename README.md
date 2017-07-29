@@ -17,9 +17,9 @@ android ui skip utils
 
 ### 声明需要的参数
     public class OneActivity extends AppCompatActivity {
-        @IntentExtra
+        @RequestParam
         String name;
-        @IntentExtra
+        @RequestParam
         int age;
     
         @Override
