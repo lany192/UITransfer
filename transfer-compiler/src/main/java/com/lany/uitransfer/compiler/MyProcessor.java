@@ -3,7 +3,7 @@ package com.lany.uitransfer.compiler;
 
 import com.google.auto.service.AutoService;
 import com.lany.uitransfer.annotaion.RequestParam;
-import com.lany.uitransfer.annotaion.TransferInjector;
+import com.lany.uitransfer.annotaion.TransferBind;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -33,7 +33,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 @AutoService(Processor.class)
-public class TransferProcessor extends AbstractProcessor {
+public class MyProcessor extends AbstractProcessor {
     private static final String PACKAGE_NAME = "com.github.lany192";
     private Filer filer;
     private Map<String, TransferEntity> map;
@@ -54,7 +54,7 @@ public class TransferProcessor extends AbstractProcessor {
             getEachVariableElement(element);
         }
         try {
-            createTransfer();
+            createUIHelper();
             createInjectors();
         } catch (Exception e) {
             e.printStackTrace();
@@ -116,7 +116,7 @@ public class TransferProcessor extends AbstractProcessor {
         }
     }
 
-    private void createTransfer() throws Exception {
+    private void createUIHelper() throws Exception {
         List<TypeSpec> targetActivitiesClassList = new LinkedList<>();
         List<MethodSpec> goToActivitiesMethodList = new LinkedList<>();
         for (Map.Entry<String, TransferEntity> entry : map.entrySet()) {
@@ -146,23 +146,23 @@ public class TransferProcessor extends AbstractProcessor {
                 MethodSpec method = MethodSpec.methodBuilder(methodName)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(getFieldType(field), field.fieldValue + "Extra")
-                        .returns(ClassName.get(PACKAGE_NAME, "Transfer", "To" + className))
+                        .returns(ClassName.get(PACKAGE_NAME, "UIHelper", "To" + className))
                         .addStatement("intent.put$LExtra($S, $L)", paramName, field.fieldValue, field.fieldValue + "Extra")
                         .addStatement("return this")
                         .build();
                 targetActivitiesMethodList.add(method);
             }
 
-            //Transfer里GoToXXXActivity类的go()
+            //UIHelper里GoToXXXActivity类的start()
             MethodSpec start = MethodSpec.methodBuilder("start")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("Transfer.start($T.class)", ClassName.bestGuess(fullClassName))
+                    .addStatement("UIHelper.start($T.class)", ClassName.bestGuess(fullClassName))
                     .build();
 
             MethodSpec startForResult = MethodSpec.methodBuilder("start")
                     .addModifiers(Modifier.PUBLIC)
                     .addParameter(int.class, "requestCode")
-                    .addStatement("Transfer.start($T.class, requestCode)", ClassName.bestGuess(fullClassName))
+                    .addStatement("UIHelper.start($T.class, requestCode)", ClassName.bestGuess(fullClassName))
                     .build();
 
             MethodSpec constructor = MethodSpec.constructorBuilder()
@@ -180,8 +180,8 @@ public class TransferProcessor extends AbstractProcessor {
             MethodSpec method = MethodSpec.methodBuilder("to" + className)
                     .addModifiers(Modifier.PUBLIC)
                     .addJavadoc("@see 跳转到$T\n", ClassName.bestGuess(fullClassName))
-                    .returns(ClassName.get(PACKAGE_NAME, "Transfer", "To" + className))
-                    .addStatement("return new $T()", ClassName.get(PACKAGE_NAME, "Transfer", "To" + className))
+                    .returns(ClassName.get(PACKAGE_NAME, "UIHelper", "To" + className))
+                    .addStatement("return new $T()", ClassName.get(PACKAGE_NAME, "UIHelper", "To" + className))
                     .build();
 
             targetActivitiesClassList.add(type);
@@ -193,7 +193,7 @@ public class TransferProcessor extends AbstractProcessor {
         MethodSpec addFlags = MethodSpec.methodBuilder("addFlags")
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(TypeName.INT, "flags")
-                .returns(ClassName.get(PACKAGE_NAME, "Transfer", "ToActivity"))
+                .returns(ClassName.get(PACKAGE_NAME, "UIHelper", "ToActivity"))
                 .addStatement("intent.addFlags(flags)")
                 .addStatement("return this")
                 .build();
@@ -201,41 +201,41 @@ public class TransferProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(TypeName.INT, "enterAnimId")
                 .addParameter(TypeName.INT, "exitAnimId")
-                .returns(ClassName.get(PACKAGE_NAME, "Transfer", "ToActivity"))
+                .returns(ClassName.get(PACKAGE_NAME, "UIHelper", "ToActivity"))
                 .addStatement("enterAnim = enterAnimId")
                 .addStatement("exitAnim = exitAnimId")
                 .addStatement("return this")
                 .build();
-        TypeSpec TransferToActivity = TypeSpec.classBuilder("ToActivity")
+        TypeSpec UIHelperToActivity = TypeSpec.classBuilder("ToActivity")
                 .addModifiers(Modifier.FINAL, Modifier.PUBLIC, Modifier.STATIC)
                 .addMethod(constructor)
                 .addMethod(setAnim)
                 .addMethod(addFlags)
                 .addMethods(goToActivitiesMethodList)
                 .build();
-        MethodSpec inject = MethodSpec.methodBuilder("inject")
+        MethodSpec bind = MethodSpec.methodBuilder("bind")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(Object.class, "activity")
-                .addStatement("inject(activity, null)")
+                .addStatement("bind(activity, null)")
                 .build();
-        MethodSpec inject2 = MethodSpec.methodBuilder("inject")
+        MethodSpec bind2 = MethodSpec.methodBuilder("bind")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(Object.class, "activity")
                 .addParameter(Object.class, "intent")
                 .addCode("try {\n" +
-                        "  String injectorName = activity.getClass().getCanonicalName() + \"_Transfer\";\n" +
-                        "  (($T) Class.forName(injectorName).newInstance()).inject(activity, intent);\n" +
+                        "  String bindorName = activity.getClass().getCanonicalName() + \"_UIHelper\";\n" +
+                        "  (($T) Class.forName(bindorName).newInstance()).bind(activity, intent);\n" +
                         "} catch (Exception e) {\n" +
                         "  e.printStackTrace();\n" +
-                        "}\n", TransferInjector.class)
+                        "}\n", TransferBind.class)
                 .build();
         MethodSpec from = MethodSpec.methodBuilder("from")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(ClassName.bestGuess("android.content.Context"), "ctx")
-                .returns(ClassName.get(PACKAGE_NAME, "Transfer", "ToActivity"))
+                .returns(ClassName.get(PACKAGE_NAME, "UIHelper", "ToActivity"))
                 .addStatement("context = ctx")
                 .addStatement("intent = new Intent()")
-                .addStatement("return new $T()", ClassName.get(PACKAGE_NAME, "Transfer", "ToActivity"))
+                .addStatement("return new $T()", ClassName.get(PACKAGE_NAME, "UIHelper", "ToActivity"))
                 .build();
         MethodSpec go = MethodSpec.methodBuilder("start")
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
@@ -284,24 +284,24 @@ public class TransferProcessor extends AbstractProcessor {
         FieldSpec exitAnim = FieldSpec.builder(TypeName.INT, "exitAnim", Modifier.PRIVATE, Modifier.STATIC)
                 .initializer("-1")
                 .build();
-        TypeSpec Transfer = TypeSpec.classBuilder("Transfer")
+        TypeSpec UIHelper = TypeSpec.classBuilder("UIHelper")
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addField(ClassName.bestGuess("android.content.Context"), "context", Modifier.PRIVATE, Modifier.STATIC)
                 .addField(ClassName.bestGuess("android.content.Intent"), "intent", Modifier.PRIVATE, Modifier.STATIC)
                 .addField(enterAnim)
                 .addField(exitAnim)
                 .addMethod(constructor)
-                .addMethod(inject)
-                .addMethod(inject2)
+                .addMethod(bind)
+                .addMethod(bind2)
                 .addMethod(from)
                 .addMethod(go)
                 .addMethod(goForResult)
                 .addMethod(setTransition)
                 .addMethod(reset)
-                .addType(TransferToActivity)
+                .addType(UIHelperToActivity)
                 .addTypes(targetActivitiesClassList)
                 .build();
-        JavaFile javaFile = JavaFile.builder(PACKAGE_NAME, Transfer).build();
+        JavaFile javaFile = JavaFile.builder(PACKAGE_NAME, UIHelper).build();
         javaFile.writeTo(filer);
     }
 
@@ -310,7 +310,7 @@ public class TransferProcessor extends AbstractProcessor {
             String fullClassName = entry.getKey();
             String packageName = entry.getValue().packageName;
             String className = entry.getValue().className;
-            MethodSpec.Builder builder = MethodSpec.methodBuilder("inject");
+            MethodSpec.Builder builder = MethodSpec.methodBuilder("bind");
             builder.addModifiers(Modifier.PUBLIC)
                     .addAnnotation(Override.class)
                     .addParameter(ClassName.bestGuess(fullClassName), "a")
@@ -319,9 +319,9 @@ public class TransferProcessor extends AbstractProcessor {
             for (FieldEntity field : entry.getValue().fields) {
                 getExtras(builder, field);
             }
-            TypeSpec typeSpec = TypeSpec.classBuilder(className + "_Transfer")
+            TypeSpec typeSpec = TypeSpec.classBuilder(className + "_UIHelper")
                     .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                    .addSuperinterface(ParameterizedTypeName.get(ClassName.bestGuess(TransferInjector.class.getCanonicalName()), ClassName.bestGuess(fullClassName)))
+                    .addSuperinterface(ParameterizedTypeName.get(ClassName.bestGuess(TransferBind.class.getCanonicalName()), ClassName.bestGuess(fullClassName)))
                     .addMethod(builder.build())
                     .build();
             JavaFile javaFile = JavaFile.builder(packageName, typeSpec).build();

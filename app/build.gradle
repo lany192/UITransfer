@@ -31,9 +31,9 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
 
-    compile 'com.github.lany192.UITransfer:transfer-annotation:1.0.1'
-    annotationProcessor 'com.github.lany192.UITransfer:transfer-compiler:1.0.1'
+//    compile 'com.github.lany192.UITransfer:transfer-annotation:1.0.1'
+//    annotationProcessor 'com.github.lany192.UITransfer:transfer-compiler:1.0.1'
 
-//    annotationProcessor project(':transfer-compiler')
-//    compile project(':transfer-annotation')
+    annotationProcessor project(':transfer-compiler')
+    compile project(':transfer-annotation')
 }
