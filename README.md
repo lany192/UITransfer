@@ -9,8 +9,8 @@ android ui skip utils
     }
 # app模块build.gradle引入 
     dependencies {
-        compile 'com.github.lany192.UITransfer:transfer-annotation:1.0.1'
-        annotationProcessor 'com.github.lany192.UITransfer:transfer-compiler:1.0.1'
+        compile 'com.github.lany192.UITransfer:transfer-annotation:1.0.2'
+        annotationProcessor 'com.github.lany192.UITransfer:transfer-compiler:1.0.2'
     }
 
 # 使用方法
@@ -25,7 +25,7 @@ android ui skip utils
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            Transfer.inject(this);
+            UIHelper.bind(this);
             ...
         }
     }
@@ -34,8 +34,8 @@ android ui skip utils
 
 普通跳转startActivity
     
-    Transfer.from(MainActivity.this).toOneActivity().setAge(3).setName("哈哈哈").start();
+    UIHelper.from(MainActivity.this).toOneActivity().setAge(3).setName("哈哈哈").start();
 
 返回结果跳转普通跳转startActivityForResult
 
-    Transfer.from(MainActivity.this).toOneActivity().setAge(3).setName("哈哈哈").start(int requestCode);
+    UIHelper.from(MainActivity.this).toOneActivity().setAge(3).setName("哈哈哈").start(int requestCode);
