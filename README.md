@@ -9,8 +9,8 @@ android ui skip utils
     }
 # app模块build.gradle引入 
     dependencies {
-        compile 'com.github.lany192.UITransfer:transfer-annotation:1.0.2'
-        annotationProcessor 'com.github.lany192.UITransfer:transfer-compiler:1.0.2'
+        compile 'com.github.lany192.UITransfer:annotation:1.0.3'
+        annotationProcessor 'com.github.lany192.UITransfer:compiler:1.0.3'
     }
 
 # 使用方法
