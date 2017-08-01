@@ -1,1 +1,1 @@
-include ':app', ':transfer-compiler', ':transfer-annotation'
+include ':app', ':compiler', ':annotation'
