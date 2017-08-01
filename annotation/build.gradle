@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.lany192'
-project.archivesBaseName = 'UIHelper-annotation'
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
