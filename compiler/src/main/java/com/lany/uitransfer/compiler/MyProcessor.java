@@ -36,7 +36,7 @@ import javax.lang.model.element.VariableElement;
 public class MyProcessor extends AbstractProcessor {
     private static final String PACKAGE_NAME = "com.github.lany192";
     private Filer filer;
-    private Map<String, TransferEntity> map;
+    private Map<String, UIEntity> map;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -71,26 +71,26 @@ public class MyProcessor extends AbstractProcessor {
         RequestParam annotation = element.getAnnotation(RequestParam.class);
         String fieldValue = annotation.value().isEmpty() ? fieldName : annotation.value();
         String canonicalClassName = packageName + "." + className;
-        TransferEntity TransferEntity;
+        UIEntity entity;
         if (map.get(canonicalClassName) == null) {
-            TransferEntity = new TransferEntity();
-            TransferEntity.packageName = packageName;
-            TransferEntity.className = className;
-            map.put(canonicalClassName, TransferEntity);
+            entity = new UIEntity();
+            entity.setPackageName(packageName);
+            entity.setClassName(className);
+            map.put(canonicalClassName, entity);
         } else {
-            TransferEntity = map.get(canonicalClassName);
+            entity = map.get(canonicalClassName);
         }
         if (fieldType.contains("<") && fieldType.contains(">")) {
             int startIndex = fieldType.indexOf("<");
             int endIndex = fieldType.indexOf(">");
             String class1 = fieldType.substring(0, startIndex);
             String class2 = fieldType.substring(startIndex + 1, endIndex);
-            FieldEntity entity = new FieldEntity();
-            entity.fieldName = fieldName;
-            entity.fieldValue = fieldValue;
-            entity.fieldType = class1;
-            entity.fieldParam = class2;
-            TransferEntity.fields.add(entity);
+            Field field = new Field();
+            field.setName(fieldName);
+            field.setValue(fieldValue);
+            field.setType(class1);
+            field.setParam(class2);
+            entity.addField(field);
         } else {
             String[] typeArray = {
                     "boolean", "boolean[]",
@@ -106,12 +106,12 @@ public class MyProcessor extends AbstractProcessor {
                     "android.os.Bundle"
             };
             if (Arrays.asList(typeArray).contains(fieldType)) {
-                TransferEntity.fields.add(new FieldEntity(fieldName, fieldType, fieldValue));
+                entity.addField(new Field(fieldName, fieldType, fieldValue));
             } else {
                 String type = fieldType.contains("[]") ? "android.os.Parcelable[]" : "android.os.Parcelable";
-                FieldEntity entity = new FieldEntity(fieldName, type, fieldValue);
-                entity.originalType = fieldType.replace("[]", "");
-                TransferEntity.fields.add(entity);
+                Field field = new Field(fieldName, type, fieldValue);
+                field.setOriginalType(fieldType.replace("[]", ""));
+                entity.addField(field);
             }
         }
     }
@@ -119,15 +119,15 @@ public class MyProcessor extends AbstractProcessor {
     private void createUIHelper() throws Exception {
         List<TypeSpec> targetActivitiesClassList = new LinkedList<>();
         List<MethodSpec> goToActivitiesMethodList = new LinkedList<>();
-        for (Map.Entry<String, TransferEntity> entry : map.entrySet()) {
-            String className = entry.getValue().className;
+        for (Map.Entry<String, UIEntity> entry : map.entrySet()) {
+            String className = entry.getValue().getClassName();
             String fullClassName = entry.getKey();
             List<MethodSpec> targetActivitiesMethodList = new LinkedList<>();
-            for (FieldEntity field : entry.getValue().fields) {
-                String methodName = "set" + field.fieldValue.substring(0, 1).toUpperCase() + field.fieldValue.substring(1, field.fieldValue.length());
+            for (Field field : entry.getValue().getFields()) {
+                String methodName = "set" + field.getValue().substring(0, 1).toUpperCase() + field.getValue().substring(1, field.getValue().length());
                 String paramName = "";
-                if (field.fieldParam.length() > 0) {
-                    String paramSimpleName = field.fieldParam.substring(field.fieldParam.lastIndexOf(".") + 1, field.fieldParam.length());
+                if (field.getParam().length() > 0) {
+                    String paramSimpleName = field.getParam().substring(field.getParam().lastIndexOf(".") + 1, field.getParam().length());
                     switch (paramSimpleName) {
                         case "Integer":
                             paramName = "IntegerArrayList";
@@ -145,9 +145,9 @@ public class MyProcessor extends AbstractProcessor {
                 }
                 MethodSpec method = MethodSpec.methodBuilder(methodName)
                         .addModifiers(Modifier.PUBLIC)
-                        .addParameter(getFieldType(field), field.fieldValue + "Extra")
+                        .addParameter(getFieldType(field), field.getValue() + "Extra")
                         .returns(ClassName.get(PACKAGE_NAME, "UIHelper", "To" + className))
-                        .addStatement("intent.put$LExtra($S, $L)", paramName, field.fieldValue, field.fieldValue + "Extra")
+                        .addStatement("intent.put$LExtra($S, $L)", paramName, field.getValue(), field.getValue() + "Extra")
                         .addStatement("return this")
                         .build();
                 targetActivitiesMethodList.add(method);
@@ -306,17 +306,17 @@ public class MyProcessor extends AbstractProcessor {
     }
 
     private void createInjectors() throws Exception {
-        for (Map.Entry<String, TransferEntity> entry : map.entrySet()) {
+        for (Map.Entry<String, UIEntity> entry : map.entrySet()) {
             String fullClassName = entry.getKey();
-            String packageName = entry.getValue().packageName;
-            String className = entry.getValue().className;
+            String packageName = entry.getValue().getPackageName();
+            String className = entry.getValue().getClassName();
             MethodSpec.Builder builder = MethodSpec.methodBuilder("bind");
             builder.addModifiers(Modifier.PUBLIC)
                     .addAnnotation(Override.class)
                     .addParameter(ClassName.bestGuess(fullClassName), "a")
                     .addParameter(Object.class, "i")
                     .addStatement("$T intent = i == null ? a.getIntent() : (Intent) i", ClassName.bestGuess("android.content.Intent"));
-            for (FieldEntity field : entry.getValue().fields) {
+            for (Field field : entry.getValue().getFields()) {
                 getExtras(builder, field);
             }
             TypeSpec typeSpec = TypeSpec.classBuilder(className + "_UIHelper")
@@ -329,13 +329,13 @@ public class MyProcessor extends AbstractProcessor {
         }
     }
 
-    private void getExtras(MethodSpec.Builder builder, FieldEntity field) {
-        builder.addCode("if (intent.hasExtra($S)) {\n", field.fieldValue);
+    private void getExtras(MethodSpec.Builder builder, Field field) {
+        builder.addCode("if (intent.hasExtra($S)) {\n", field.getValue());
         String[] typeArray = {"boolean", "byte", "short", "int", "long", "double", "float", "char"};
-        if (Arrays.asList(typeArray).contains(field.fieldType)) {
+        if (Arrays.asList(typeArray).contains(field.getType())) {
             String statement = "  a.%s = intent.get%sExtra(\"%s\", %s)";
             String defaultValue = "";
-            switch (field.fieldType) {
+            switch (field.getType()) {
                 case "int":
                 case "long":
                 case "double":
@@ -355,38 +355,38 @@ public class MyProcessor extends AbstractProcessor {
                     defaultValue = "'\0'";
                     break;
             }
-            String extraType = field.fieldType.toUpperCase().substring(0, 1) + field.fieldType.substring(1, field.fieldType.length());
-            builder.addStatement(String.format(statement, field.fieldName, extraType, field.fieldValue, defaultValue));
+            String extraType = field.getType().toUpperCase().substring(0, 1) + field.getType().substring(1, field.getType().length());
+            builder.addStatement(String.format(statement, field.getName(), extraType, field.getValue(), defaultValue));
         } else {
-            if (field.fieldType.contains("[]")) {
-                String extraType = field.fieldType.replace("[]", "Array");
-                String paramType = field.fieldParam.substring(field.fieldParam.lastIndexOf(".") + 1, field.fieldParam.length());
+            if (field.getType().contains("[]")) {
+                String extraType = field.getType().replace("[]", "Array");
+                String paramType = field.getParam().substring(field.getParam().lastIndexOf(".") + 1, field.getParam().length());
                 if (Arrays.asList(typeArray).contains(extraType.replace("Array", ""))) {
                     extraType = extraType.substring(0, 1).toUpperCase() + extraType.substring(1, extraType.length());
                 } else {
-                    String type = field.fieldType.substring(field.fieldType.lastIndexOf(".") + 1, field.fieldType.length());
+                    String type = field.getType().substring(field.getType().lastIndexOf(".") + 1, field.getType().length());
                     extraType = type.substring(0, 1).toUpperCase() + type.substring(1, type.length()).replace("[]", "Array");
                 }
                 if (extraType.contentEquals("ParcelableArray")) {
-                    ClassName originalTypeName = ClassName.bestGuess(field.originalType);
-                    builder.addStatement("  $T[] $LArray = intent.getParcelableArrayExtra($S)", ClassName.bestGuess("android.os.Parcelable"), field.fieldValue, field.fieldValue);
-                    builder.addStatement("  $T[] $LTempArray = new $T[$LArray.length]", originalTypeName, field.fieldValue, originalTypeName, field.fieldValue);
-                    builder.beginControlFlow("  for (int n = 0; n < $LArray.length; n++)", field.fieldValue);
-                    builder.addStatement("  $LTempArray[n] = ($T) $LArray[n]", field.fieldValue, originalTypeName, field.fieldValue);
+                    ClassName originalTypeName = ClassName.bestGuess(field.getOriginalType());
+                    builder.addStatement("  $T[] $LArray = intent.getParcelableArrayExtra($S)", ClassName.bestGuess("android.os.Parcelable"), field.getValue(), field.getValue());
+                    builder.addStatement("  $T[] $LTempArray = new $T[$LArray.length]", originalTypeName, field.getValue(), originalTypeName, field.getValue());
+                    builder.beginControlFlow("  for (int n = 0; n < $LArray.length; n++)", field.getValue());
+                    builder.addStatement("  $LTempArray[n] = ($T) $LArray[n]", field.getValue(), originalTypeName, field.getValue());
                     builder.addCode(" ");
                     builder.endControlFlow();
-                    builder.addStatement("  a.$L = $LTempArray", field.fieldName, field.fieldValue);
+                    builder.addStatement("  a.$L = $LTempArray", field.getName(), field.getValue());
                 } else {
-                    builder.addStatement("  a.$L = intent.get$LExtra($S)", field.fieldName, paramType + extraType, field.fieldValue);
+                    builder.addStatement("  a.$L = intent.get$LExtra($S)", field.getName(), paramType + extraType, field.getValue());
                 }
             } else {
                 String[] params = {"Integer", "String", "CharSequence", ""};
-                String extraType = field.fieldType.substring(field.fieldType.lastIndexOf(".") + 1, field.fieldType.length());
-                String paramType = field.fieldParam.substring(field.fieldParam.lastIndexOf(".") + 1, field.fieldParam.length());
+                String extraType = field.getType().substring(field.getType().lastIndexOf(".") + 1, field.getType().length());
+                String paramType = field.getParam().substring(field.getParam().lastIndexOf(".") + 1, field.getParam().length());
                 if (!Arrays.asList(params).contains(paramType)) {
                     paramType = "Parcelable";
                 }
-                builder.addStatement("  a.$L = intent.get$LExtra($S)", field.fieldName, paramType + extraType, field.fieldValue);
+                builder.addStatement("  a.$L = intent.get$LExtra($S)", field.getName(), paramType + extraType, field.getValue());
             }
         }
         builder.addCode("}\n");
@@ -404,9 +404,9 @@ public class MyProcessor extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
-    private TypeName getFieldType(FieldEntity field) {
+    private TypeName getFieldType(Field field) {
         TypeName typeName;
-        switch (field.fieldType) {
+        switch (field.getType()) {
             case "boolean":
                 typeName = TypeName.BOOLEAN;
                 break;
@@ -471,16 +471,16 @@ public class MyProcessor extends AbstractProcessor {
                 typeName = ClassName.bestGuess("android.os.Parcelable");
                 break;
             case "android.os.Parcelable[]":
-                typeName = ArrayTypeName.of(ClassName.bestGuess(field.originalType));
+                typeName = ArrayTypeName.of(ClassName.bestGuess(field.getOriginalType()));
                 break;
             case "android.os.Bundle":
                 typeName = ClassName.bestGuess("android.os.Bundle");
                 break;
             default:
-                if (field.fieldParam.length() > 0) {
-                    typeName = ParameterizedTypeName.get(ClassName.bestGuess(field.fieldType), ClassName.bestGuess(field.fieldParam));
+                if (field.getParam().length() > 0) {
+                    typeName = ParameterizedTypeName.get(ClassName.bestGuess(field.getType()), ClassName.bestGuess(field.getParam()));
                 } else {
-                    typeName = ClassName.bestGuess(field.fieldType);
+                    typeName = ClassName.bestGuess(field.getType());
                 }
                 break;
         }
