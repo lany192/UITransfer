@@ -1,8 +1,9 @@
 package com.lany.uitransfer;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.lany192.UIHelper;
 

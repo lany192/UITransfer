@@ -3,10 +3,10 @@ apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.lany192'
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.squareup:javapoet:1.9.0'
-    compile 'com.google.auto.service:auto-service:1.0-rc3'
-    compile project(':annotation')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.squareup:javapoet:1.13.0'
+    implementation 'com.google.auto.service:auto-service:1.0-rc3'
+    implementation project(':annotation')
 }
 
 sourceCompatibility = "1.7"
