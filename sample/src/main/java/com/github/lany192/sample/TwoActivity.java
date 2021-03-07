@@ -1,4 +1,4 @@
-package com.lany.uitransfer;
+package com.github.lany192.sample;
 
 import android.os.Bundle;
 import android.widget.TextView;

@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 30
     defaultConfig {
-        applicationId "com.lany.uitransfer"
+        applicationId "com.github.lany192.sample"
         minSdkVersion 14
         targetSdkVersion 30
         versionCode 1

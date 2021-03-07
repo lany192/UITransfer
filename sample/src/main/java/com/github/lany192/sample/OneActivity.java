@@ -1,4 +1,4 @@
-package com.lany.uitransfer;
+package com.github.lany192.sample;
 
 import android.os.Bundle;
 import android.widget.TextView;
@@ -6,6 +6,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.lany192.UIHelper;
+
 import com.lany.uitransfer.annotaion.RequestParam;
 
 public class OneActivity extends AppCompatActivity {
