@@ -5,9 +5,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.lany192.UIHelper;
+import com.github.lany192.transfer.UIHelper;
+import com.github.lany192.transfer.annotaion.RequestParam;
 
-import com.lany.uitransfer.annotaion.RequestParam;
 
 public class OneActivity extends AppCompatActivity {
     @RequestParam("name")

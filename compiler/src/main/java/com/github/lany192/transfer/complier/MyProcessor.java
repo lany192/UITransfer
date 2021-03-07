@@ -1,9 +1,9 @@
-package com.lany.uitransfer.compiler;
+package com.github.lany192.transfer.complier;
 
 
+import com.github.lany192.transfer.annotaion.RequestParam;
+import com.github.lany192.transfer.annotaion.TransferBind;
 import com.google.auto.service.AutoService;
-import com.lany.uitransfer.annotaion.RequestParam;
-import com.lany.uitransfer.annotaion.TransferBind;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -34,7 +34,7 @@ import javax.lang.model.element.VariableElement;
 
 @AutoService(Processor.class)
 public class MyProcessor extends AbstractProcessor {
-    private static final String PACKAGE_NAME = "com.github.lany192";
+    private static final String PACKAGE_NAME = "com.github.lany192.transfer";
     private Filer filer;
     private Map<String, UIEntity> map;
 

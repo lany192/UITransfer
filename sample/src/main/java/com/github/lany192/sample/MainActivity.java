@@ -5,8 +5,7 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.github.lany192.UIHelper;
-
+import com.github.lany192.transfer.UIHelper;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.lany.uitransfer.annotaion;
+package com.github.lany192.transfer.annotaion;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

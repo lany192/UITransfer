@@ -1,4 +1,4 @@
-package com.lany.uitransfer.compiler;
+package com.github.lany192.transfer.complier;
 
 public class Field {
     private String name;
